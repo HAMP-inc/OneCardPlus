@@ -5,10 +5,11 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  Button,
   TouchableOpacity,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+
+const PAGE_SIZE = 5;
 
 interface Transaction {
   id: string;
@@ -16,16 +17,13 @@ interface Transaction {
   amount: number;
 }
 
-const PAGE_SIZE = 5;
-const MAX_PAGE = 5;
-
 const TransactionsScreen: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [pageLoading, setPageLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>(true);
 
+  // Mock API fetch function
   const fetchTransactions = async (page: number): Promise<Transaction[]> => {
     console.log("Fetching transactions for page:", page);
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -37,7 +35,6 @@ const TransactionsScreen: React.FC = () => {
       amount: Math.floor(Math.random() * 1000),
     }));
 
-    if (page > MAX_PAGE) return [];
     return data;
   };
 
@@ -48,11 +45,7 @@ const TransactionsScreen: React.FC = () => {
 
     try {
       const newTransactions = await fetchTransactions(page);
-      if (newTransactions.length === 0) {
-        setHasMore(false);
-      } else {
-        setTransactions(newTransactions);
-      }
+      setTransactions(newTransactions); // Replace old transactions with the new ones
     } catch (error) {
       console.error("Error loading transactions:", error);
     } finally {
@@ -78,7 +71,7 @@ const TransactionsScreen: React.FC = () => {
 
       <FlatList
         data={transactions}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => `${item.id}-${page}-${index}`} // Unique key: item id + page + index
         renderItem={({ item }) => (
           <View style={styles.transactionItem}>
             <Text style={styles.text}>ID: {item.id}</Text>
@@ -114,16 +107,16 @@ const TransactionsScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.pageButton}
-          onPress={() => setPage((prev) => Math.min(prev + 1, MAX_PAGE))}
-          disabled={page === MAX_PAGE || pageLoading}
+          onPress={() => setPage((prev) => prev + 1)} // Increment the page number
+          disabled={pageLoading}
         >
           <Ionicons name="chevron-forward" size={24} color="blue" />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.pageButton}
-          onPress={() => setPage(MAX_PAGE)}
-          disabled={page === MAX_PAGE || pageLoading}
+          onPress={() => setPage(page + 1)} // Go to the next page
+          disabled={pageLoading}
         >
           <Ionicons name="arrow-redo" size={24} color="blue" />
         </TouchableOpacity>

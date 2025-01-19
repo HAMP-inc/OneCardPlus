@@ -106,7 +106,7 @@ const TransactionsScreen: React.FC = () => {
       };
       Alert.alert(
         "PDF Downloaded",
-        "PDF saved to: /Documents/transactions.pdf"
+        "PDF saved on the files app under: /Documents/transactions.pdf"
       );
     } catch (error) {
       console.error("Error generating PDF:", error);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   ActivityIndicator,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const PAGE_SIZE = 5;
 
@@ -15,6 +17,7 @@ interface Transaction {
   id: string;
   name: string;
   amount: number;
+  date: string;
 }
 
 const TransactionsScreen: React.FC = () => {
@@ -22,23 +25,32 @@ const TransactionsScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [pageLoading, setPageLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1); // Initially set to 1
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  // Dynamically calculate the total number of pages based on available data
+  const flatListRef = useRef<FlatList>(null); // Reference to FlatList for scroll control
+
+  // Fetch transactions with page number
   const fetchTransactions = async (page: number): Promise<Transaction[]> => {
     console.log("Fetching transactions for page:", page);
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const startIndex = (page - 1) * PAGE_SIZE;
     const data = Array.from({ length: PAGE_SIZE }, (_, i) => ({
       id: `${startIndex + i + 1}`,
       name: `Transaction ${startIndex + i + 1}`,
       amount: Math.floor(Math.random() * 1000),
+      date: getRandomDate(),
     }));
 
-    return data;
+    // Sort the transactions by date in descending order (latest first)
+    return data.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
   };
 
+  // Load transactions for the current page
   const loadTransactions = async (page: number) => {
     if (loading) return;
     setLoading(true);
@@ -60,6 +72,14 @@ const TransactionsScreen: React.FC = () => {
 
   useEffect(() => {
     loadTransactions(page);
+
+    // Scroll to top when page changes
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({
+        animated: true,
+        offset: 0, // Scroll to the top
+      });
+    }
   }, [page]);
 
   const goToFirstPage = () => {
@@ -67,7 +87,50 @@ const TransactionsScreen: React.FC = () => {
   };
 
   const goToLastPage = () => {
-    setPage(totalPages); // Set to the last page
+    setPage(totalPages);
+  };
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (!startDate || !endDate) return true;
+    const transactionDate = new Date(transaction.date);
+    return transactionDate >= startDate && transactionDate <= endDate;
+  });
+
+  const downloadTransactionsPDF = async () => {
+    try {
+      const htmlContent = generateHTMLForPDF(filteredTransactions);
+      const options = {
+        html: htmlContent,
+        fileName: "transactions",
+        directory: "Documents",
+      };
+      Alert.alert(
+        "PDF Downloaded",
+        "PDF saved to: /Documents/transactions.pdf"
+      );
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      Alert.alert("Error", "Failed to generate PDF");
+    }
+  };
+
+  const generateHTMLForPDF = (transactions: Transaction[]) => {
+    let htmlContent =
+      '<h1>Transactions Report</h1><table border="1"><tr><th>ID</th><th>Name</th><th>Amount</th><th>Date</th></tr>';
+    transactions.forEach((transaction) => {
+      htmlContent += `<tr><td>${transaction.id}</td><td>${transaction.name}</td><td>${transaction.amount}</td><td>${transaction.date}</td></tr>`;
+    });
+    htmlContent += "</table>";
+    return htmlContent;
+  };
+
+  const getRandomDate = (): string => {
+    const start = new Date(2023, 0, 1);
+    const end = new Date(2023, 11, 31);
+    const randomDate = new Date(
+      start.getTime() + Math.random() * (end.getTime() - start.getTime())
+    );
+    return randomDate.toISOString().split("T")[0]; // Return date in YYYY-MM-DD format
   };
 
   return (
@@ -81,18 +144,45 @@ const TransactionsScreen: React.FC = () => {
 
       {!pageLoading && <Text style={styles.pageLabel}>Page {page}</Text>}
 
+      {/* Filter Date Range */}
+      <View style={styles.filterContainer}>
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.filterLabel}>Start Date:</Text>
+          <DateTimePicker
+            value={startDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={(e, selectedDate) =>
+              setStartDate(selectedDate || startDate)
+            }
+          />
+        </View>
+
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.filterLabel}>End Date:</Text>
+          <DateTimePicker
+            value={endDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={(e, selectedDate) => setEndDate(selectedDate || endDate)}
+          />
+        </View>
+      </View>
+
       <FlatList
-        data={transactions}
-        keyExtractor={(item, index) => `${item.id}-${page}-${index}`} // Unique key: item id + page + index
+        ref={flatListRef}
+        data={filteredTransactions}
+        keyExtractor={(item) => `${item.id}-${page}`}
         renderItem={({ item }) => (
           <View style={styles.transactionItem}>
             <Text style={styles.text}>ID: {item.id}</Text>
             <Text style={styles.text}>Name: {item.name}</Text>
             <Text style={styles.text}>Amount: ${item.amount}</Text>
+            <Text style={styles.text}>Date: {item.date}</Text>
           </View>
         )}
         ListEmptyComponent={
-          !loading && transactions.length === 0 ? (
+          !loading && filteredTransactions.length === 0 ? (
             <Text style={styles.text}>No transactions available.</Text>
           ) : null
         }
@@ -134,6 +224,13 @@ const TransactionsScreen: React.FC = () => {
           <Ionicons name="arrow-redo" size={24} color="blue" />
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        onPress={downloadTransactionsPDF}
+        style={styles.downloadButton}
+      >
+        <Text style={styles.downloadText}>Download as PDF</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -154,6 +251,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
     color: "gray",
+  },
+  filterContainer: {
+    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  datePickerContainer: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  filterLabel: {
+    fontSize: 16,
+    marginBottom: 8,
   },
   pageLabel: {
     fontSize: 20,
@@ -183,6 +293,17 @@ const styles = StyleSheet.create({
   },
   pageButton: {
     marginHorizontal: 10,
+  },
+  downloadButton: {
+    backgroundColor: "#6A4C9C",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  downloadText: {
+    color: "white",
+    fontSize: 18,
   },
 });
 

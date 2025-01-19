@@ -21,7 +21,7 @@ const MainScreen: React.FC<any> = ({ navigation }: any) => {
   const student = {
     name: "John Doe",
     id: "123456",
-    picture: "https://randomuser.me/api/portraits/men/41.jpg", // Dummy profile picture
+    picture: "https://randomuser.me/api/portraits/lego/4.jpg", // Dummy profile picture
     fundsRemaining: 500, // Dummy funds value
   };
 
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     position: "absolute",
-    top: 20,
+    top: 15,
     right: 20,
     backgroundColor: "#6A4C9C", // Laurier Purple
     padding: 10,

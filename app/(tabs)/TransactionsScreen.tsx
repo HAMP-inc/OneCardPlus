@@ -22,11 +22,12 @@ const TransactionsScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [pageLoading, setPageLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1); // Initially set to 1
 
-  // Mock API fetch function
+  // Dynamically calculate the total number of pages based on available data
   const fetchTransactions = async (page: number): Promise<Transaction[]> => {
     console.log("Fetching transactions for page:", page);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
 
     const startIndex = (page - 1) * PAGE_SIZE;
     const data = Array.from({ length: PAGE_SIZE }, (_, i) => ({
@@ -45,7 +46,10 @@ const TransactionsScreen: React.FC = () => {
 
     try {
       const newTransactions = await fetchTransactions(page);
-      setTransactions(newTransactions); // Replace old transactions with the new ones
+      setTransactions(newTransactions);
+
+      const totalTransactionCount = 50;
+      setTotalPages(Math.ceil(totalTransactionCount / PAGE_SIZE));
     } catch (error) {
       console.error("Error loading transactions:", error);
     } finally {
@@ -57,6 +61,14 @@ const TransactionsScreen: React.FC = () => {
   useEffect(() => {
     loadTransactions(page);
   }, [page]);
+
+  const goToFirstPage = () => {
+    setPage(1);
+  };
+
+  const goToLastPage = () => {
+    setPage(totalPages); // Set to the last page
+  };
 
   return (
     <View style={styles.container}>
@@ -92,11 +104,12 @@ const TransactionsScreen: React.FC = () => {
       <View style={styles.paginationContainer}>
         <TouchableOpacity
           style={styles.pageButton}
-          onPress={() => setPage(1)}
+          onPress={goToFirstPage}
           disabled={page === 1 || pageLoading}
         >
           <Ionicons name="arrow-undo" size={24} color="blue" />
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.pageButton}
           onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
@@ -107,16 +120,16 @@ const TransactionsScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.pageButton}
-          onPress={() => setPage((prev) => prev + 1)} // Increment the page number
-          disabled={pageLoading}
+          onPress={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={page === totalPages || pageLoading}
         >
           <Ionicons name="chevron-forward" size={24} color="blue" />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.pageButton}
-          onPress={() => setPage(page + 1)} // Go to the next page
-          disabled={pageLoading}
+          onPress={goToLastPage}
+          disabled={page === totalPages || pageLoading}
         >
           <Ionicons name="arrow-redo" size={24} color="blue" />
         </TouchableOpacity>

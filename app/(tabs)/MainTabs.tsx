@@ -1,8 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons"; // Correct import
-import TransactionsScreen from "./TransactionsScreen"; // Correct path
-import MainScreen from "./MainScreen"; // Correct path
+import { Ionicons } from "@expo/vector-icons";
+import MainScreen from "./MainScreen";
+import FundsScreen from "./FundsScreen";
+import TransactionsScreen from "./TransactionsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -12,22 +13,29 @@ const MainTabs: React.FC = () => {
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string = "";
+          const iconName: keyof typeof Ionicons.glyphMap =
+            route.name === "Home"
+              ? focused
+                ? "home"
+                : "home-outline"
+              : route.name === "Funds"
+              ? focused
+                ? "wallet"
+                : "wallet-outline"
+              : route.name === "Transactions"
+              ? focused
+                ? "list"
+                : "list-outline"
+              : "help";
 
-          if (route.name === "Home") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Transactions") {
-            iconName = focused ? "list" : "list-outline";
-          }
-
-          // Return the correct icon based on the route name
-          return <Ionicons name={iconName as any} size={size} color={color} />;
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "blue",
         tabBarInactiveTintColor: "gray",
       })}
     >
       <Tab.Screen name="Home" component={MainScreen} />
+      <Tab.Screen name="Funds" component={FundsScreen} />
       <Tab.Screen name="Transactions" component={TransactionsScreen} />
     </Tab.Navigator>
   );

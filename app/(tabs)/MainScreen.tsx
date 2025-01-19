@@ -7,7 +7,7 @@ const MainScreen: React.FC = ({ navigation }: any) => {
 
   const handleSignOut = () => {
     signOut();
-    navigation.navigate("SignIn"); // Navigate back to SignInScreen
+    navigation.navigate("SignIn");
   };
 
   return (

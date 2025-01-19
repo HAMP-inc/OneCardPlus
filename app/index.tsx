@@ -1,6 +1,6 @@
 import React from "react";
-import AppNavigation from "./AppNavigation"; // The navigation component
-import { AuthProvider } from "./context/AuthContext"; // Authentication context
+import AppNavigation from "./AppNavigation";
+import { AuthProvider } from "./context/AuthContext";
 
 const App: React.FC = () => {
   return (

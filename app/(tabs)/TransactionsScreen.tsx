@@ -7,9 +7,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Modal,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 const PAGE_SIZE = 5;
 
@@ -26,12 +29,13 @@ const TransactionsScreen: React.FC = () => {
   const [pageLoading, setPageLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
 
-  const flatListRef = useRef<FlatList>(null); // Reference to FlatList for scroll control
+  const flatListRef = useRef<FlatList>(null);
 
-  // Fetch transactions with page number
   const fetchTransactions = async (page: number): Promise<Transaction[]> => {
     console.log("Fetching transactions for page:", page);
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -44,13 +48,11 @@ const TransactionsScreen: React.FC = () => {
       date: getRandomDate(),
     }));
 
-    // Sort the transactions by date in descending order (latest first)
     return data.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   };
 
-  // Load transactions for the current page
   const loadTransactions = async (page: number) => {
     if (loading) return;
     setLoading(true);
@@ -73,44 +75,96 @@ const TransactionsScreen: React.FC = () => {
   useEffect(() => {
     loadTransactions(page);
 
-    // Scroll to top when page changes
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({
         animated: true,
-        offset: 0, // Scroll to the top
+        offset: 0,
       });
     }
   }, [page]);
 
-  const goToFirstPage = () => {
-    setPage(1);
-  };
-
-  const goToLastPage = () => {
-    setPage(totalPages);
-  };
-
   const filteredTransactions = transactions.filter((transaction) => {
-    if (!startDate || !endDate) return true;
-    const transactionDate = new Date(transaction.date);
-    return transactionDate >= startDate && transactionDate <= endDate;
+    const transactionDate = new Date(transaction.date + "T00:00:00Z");
+
+    const startUTC = Date.UTC(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      startDate.getDate()
+    );
+    const endUTC = Date.UTC(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate()
+    );
+    const transactionUTC = Date.UTC(
+      transactionDate.getFullYear(),
+      transactionDate.getMonth(),
+      transactionDate.getDate()
+    );
+
+    return transactionUTC >= startUTC && transactionUTC <= endUTC;
   });
 
   const downloadTransactionsPDF = async () => {
     try {
+      setIsDownloading(true);
+      setProgress(0);
+
+      const allFetchedTransactions: Transaction[] = [];
+
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        const newTransactions = await fetchTransactions(pageNum);
+        allFetchedTransactions.push(...newTransactions);
+
+        const randomIncrement = Math.floor(Math.random() * 21) + 5;
+        setProgress((prev) => Math.min(prev + randomIncrement, 100));
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      const filteredTransactions = allFetchedTransactions.filter(
+        (transaction) => {
+          const transactionDate = new Date(transaction.date + "T00:00:00Z");
+
+          const startUTC = Date.UTC(
+            startDate.getFullYear(),
+            startDate.getMonth(),
+            startDate.getDate()
+          );
+          const endUTC = Date.UTC(
+            endDate.getFullYear(),
+            endDate.getMonth(),
+            endDate.getDate()
+          );
+          const transactionUTC = Date.UTC(
+            transactionDate.getFullYear(),
+            transactionDate.getMonth(),
+            transactionDate.getDate()
+          );
+
+          return transactionUTC >= startUTC && transactionUTC <= endUTC;
+        }
+      );
+
       const htmlContent = generateHTMLForPDF(filteredTransactions);
-      const options = {
-        html: htmlContent,
-        fileName: "transactions",
-        directory: "Documents",
-      };
+
+      const fileUri = FileSystem.documentDirectory + "transactions.html";
+      await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Share the file and handle result with try-catch
+      await Sharing.shareAsync(fileUri);
       Alert.alert(
-        "PDF Downloaded",
-        "PDF saved on the files app under: /Documents/transactions.pdf"
+        "File Ready",
+        "The file is saved and ready to view. You can open it with a compatible app."
       );
     } catch (error) {
       console.error("Error generating PDF:", error);
       Alert.alert("Error", "Failed to generate PDF");
+    } finally {
+      setIsDownloading(false);
+      setProgress(0);
     }
   };
 
@@ -130,11 +184,31 @@ const TransactionsScreen: React.FC = () => {
     const randomDate = new Date(
       start.getTime() + Math.random() * (end.getTime() - start.getTime())
     );
-    return randomDate.toISOString().split("T")[0]; // Return date in YYYY-MM-DD format
+    return randomDate.toISOString().split("T")[0];
+  };
+
+  const goToFirstPage = () => {
+    setPage(1);
+  };
+
+  const goToLastPage = () => {
+    setPage(totalPages);
   };
 
   return (
     <View style={styles.container}>
+      <Modal visible={isDownloading} transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Generating PDF...</Text>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            </View>
+            <Text style={styles.modalText}>{progress}%</Text>
+          </View>
+        </View>
+      </Modal>
+
       {pageLoading && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="blue" />
@@ -144,12 +218,11 @@ const TransactionsScreen: React.FC = () => {
 
       {!pageLoading && <Text style={styles.pageLabel}>Page {page}</Text>}
 
-      {/* Filter Date Range */}
       <View style={styles.filterContainer}>
         <View style={styles.datePickerContainer}>
           <Text style={styles.filterLabel}>Start Date:</Text>
           <DateTimePicker
-            value={startDate || new Date()}
+            value={startDate}
             mode="date"
             display="default"
             onChange={(e, selectedDate) =>
@@ -161,7 +234,7 @@ const TransactionsScreen: React.FC = () => {
         <View style={styles.datePickerContainer}>
           <Text style={styles.filterLabel}>End Date:</Text>
           <DateTimePicker
-            value={endDate || new Date()}
+            value={endDate}
             mode="date"
             display="default"
             onChange={(e, selectedDate) => setEndDate(selectedDate || endDate)}
@@ -236,10 +309,31 @@ const TransactionsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, padding: 16 },
+  modalContainer: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
-    padding: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalText: { fontSize: 16, marginBottom: 10 },
+  progressBar: {
+    width: "100%",
+    height: 10,
+    backgroundColor: "#ccc",
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#6A4C9C",
   },
   loaderContainer: {
     flexDirection: "row",
@@ -285,6 +379,14 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
   },
+  downloadButton: {
+    backgroundColor: "#6A4C9C",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  downloadText: { color: "white", fontSize: 18 },
   paginationContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -293,17 +395,6 @@ const styles = StyleSheet.create({
   },
   pageButton: {
     marginHorizontal: 10,
-  },
-  downloadButton: {
-    backgroundColor: "#6A4C9C",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  downloadText: {
-    color: "white",
-    fontSize: 18,
   },
 });
 

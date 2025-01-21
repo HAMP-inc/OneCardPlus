@@ -10,7 +10,7 @@ Whether you're a first-year student navigating campus for the first time or a se
 - **View transactions**: Stay on top of your spending history.
 - **Manage funds on the go**: Add and manage your money anytime, anywhere.
 
-OneCard Plus is built with students in mind, ensuring that your experience is efficient and stress-free. Simplify your student life today with OneCard Plus!
+OneCard Plus is built with students in mind, ensuring an efficient and stress-free student experience. Simplify your student life today with OneCard Plus!
 
 This app is built using the [Expo](https://expo.dev) framework and follows modern development practices to ensure a smooth user experience.
 
@@ -22,16 +22,15 @@ This app is built using the [Expo](https://expo.dev) framework and follows moder
 2. **Balance Inquiry**: Easily check your remaining OneCard balance at any time, including:
    - Viewing balances for multiple categories (e.g., meal plans, flex dollars, etc.).
    - Downloading and generating detailed reports of all balances.
-
+3. **Transaction History**: Access a detailed view of your recent transactions.
+4. **Funds Management**: Manage your OneCard funds with ease.
 ---
 
 ## Technical Features
 
-1. **Transaction History**: Access a detailed view of your recent transactions.
-2. **Funds Management**: Manage your OneCard funds with ease.
-3. **Navigation**: Seamless navigation between screens using `MainTabs` and `AppNavigation`.
-4. **Reusable UI Components**: Includes components like `Collapsible`, `HapticTab`, and `ParallaxScrollView` for a rich user interface.
-5. **Custom Theming**: Support for theming with `useThemeColor`, `ThemedText`, and `ThemedView`.
+1. **Navigation**: Seamless navigation between screens using `MainTabs` and `AppNavigation`.
+2. **Reusable UI Components**: Includes components like `Collapsible`, `HapticTab`, and `ParallaxScrollView` for a rich user interface.
+3. **Custom Theming**: Support for theming with `useThemeColor`, `ThemedText`, and `ThemedView`.
 
 ---
 

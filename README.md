@@ -1,10 +1,16 @@
-# OneCard Plus
+# OneCard Plus 🎓💳  
 
-OneCard Plus is a student-focused mobile application designed to provide convenient access to student ID card information. With this app, students can:
+Welcome to **OneCard Plus**—the ultimate app for managing your student ID card with ease!
 
-- **Check their OneCard balance**
-- **View recent transactions**
-- **Access personal information linked to their student ID**
+Created by students at Wilfrid Laurier University, this student-focused mobile application is designed to simplify access to OneCard information. Say goodbye to the outdated and cumbersome website ([onecard.wlu.ca](https://onecard.wlu.ca/OneWeb/Account/LogOn)) and hello to a sleek, intuitive interface tailored for modern student life.
+
+Whether you're a first-year student navigating campus for the first time or a seasoned upper-year looking for a hassle-free way to manage your funds, OneCard Plus has you covered. With its modern design and user-friendly features, you can:
+
+- **Track balances**: Always know how much you have left on your OneCard.
+- **View transactions**: Stay on top of your spending history.
+- **Manage funds on the go**: Add and manage your money anytime, anywhere.
+
+OneCard Plus is built with students in mind, ensuring that your experience is efficient and stress-free. Simplify your student life today with OneCard Plus!
 
 This app is built using the [Expo](https://expo.dev) framework and follows modern development practices to ensure a smooth user experience.
 
@@ -12,9 +18,20 @@ This app is built using the [Expo](https://expo.dev) framework and follows moder
 
 ## Features
 
-1. **Balance Inquiry**: Easily check your remaining OneCard balance at any time.
-2. **Transaction History**: Access a detailed view of your recent transactions.
-3. **Personal Information**: View personal details associated with your student ID card.
+1. **Authentication**: A secure login system is used to access OneCard information.
+2. **Balance Inquiry**: Easily check your remaining OneCard balance at any time, including:
+   - Viewing balances for multiple categories (e.g., meal plans, flex dollars, etc.).
+   - Downloading and generating detailed reports of all balances.
+
+---
+
+## Technical Features
+
+1. **Transaction History**: Access a detailed view of your recent transactions.
+2. **Funds Management**: Manage your OneCard funds with ease.
+3. **Navigation**: Seamless navigation between screens using `MainTabs` and `AppNavigation`.
+4. **Reusable UI Components**: Includes components like `Collapsible`, `HapticTab`, and `ParallaxScrollView` for a rich user interface.
+5. **Custom Theming**: Support for theming with `useThemeColor`, `ThemedText`, and `ThemedView`.
 
 ---
 
@@ -70,10 +87,15 @@ Ensure you have the following installed on your system:
 
 ## Project Structure
 
-- **app/**: Contains the main application code and components.
-- **components/**: Reusable UI components.
+- **app/**: Contains the main application code and screens, including:
+  - `FundsScreen`
+  - `MainScreen`
+  - `TransactionsScreen`
+  - `SignInScreen`
+- **components/**: Reusable UI components such as `Collapsible`, `ParallaxScrollView`, and `HapticTab`.
 - **assets/**: Static assets such as images and fonts.
-- **context/**: Context API implementations for state management.
+- **context/**: Context API implementations for authentication and state management.
+- **navigation/**: Handles navigation logic between screens.
 
 ---
 

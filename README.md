@@ -1,50 +1,98 @@
-# Welcome to your Expo app 👋
+# OneCard Plus
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+OneCard Plus is a student-focused mobile application designed to provide convenient access to student ID card information. With this app, students can:
 
-## Get started
+- **Check their OneCard balance**
+- **View recent transactions**
+- **Access personal information linked to their student ID**
 
-1. Install dependencies
+This app is built using the [Expo](https://expo.dev) framework and follows modern development practices to ensure a smooth user experience.
 
+---
+
+## Features
+
+1. **Balance Inquiry**: Easily check your remaining OneCard balance at any time.
+2. **Transaction History**: Access a detailed view of your recent transactions.
+3. **Personal Information**: View personal details associated with your student ID card.
+
+---
+
+## Team Members
+
+- [Donil Patel](https://www.linkedin.com/in/donil-patel-02680125b/)
+- [Ali Ahmed](https://www.linkedin.com/in/ali-mujtaba-ahmed/)
+- [Rafae Hashmi](https://www.linkedin.com/in/syed-rafae-hashmi/)
+- [Abrar Murad](https://www.linkedin.com/in/abrar-murad/)
+
+---
+
+## Getting Started
+
+Follow these steps to set up and run the project locally:
+
+### Prerequisites
+Ensure you have the following installed on your system:
+- [Node.js](https://nodejs.org/) (v14 or higher)
+- [Expo CLI](https://docs.expo.dev/workflow/expo-cli/)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd onecard_plus-main/rpi-main
+   ```
+
+3. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
+### Running the App
 
+1. Start the development server:
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. Use one of the following options to open the app:
+   - [Development build](https://docs.expo.dev/develop/development-builds/introduction/)
+   - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+   - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+   - [Expo Go](https://expo.dev/go)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project Structure
 
-## Get a fresh project
+- **app/**: Contains the main application code and components.
+- **components/**: Reusable UI components.
+- **assets/**: Static assets such as images and fonts.
+- **context/**: Context API implementations for state management.
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
-```
+## Contributing
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+We welcome contributions to improve OneCard Plus! Feel free to submit pull requests or report issues in the repository.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## License
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+This project is licensed under the MIT License.
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## Learn More
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+To learn more about Expo and app development, visit the following resources:
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [Learn Expo Tutorial](https://docs.expo.dev/tutorial/introduction/)
+- [Expo GitHub Repository](https://github.com/expo/expo)

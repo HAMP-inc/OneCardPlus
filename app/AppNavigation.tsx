@@ -1,20 +1,23 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import SignInScreen from "./(tabs)/SignInScreen";
+import { useAuth } from "./context/AuthContext";
 import MainTabs from "./(tabs)/MainTabs";
+import SignInScreen from "./(tabs)/SignInScreen";
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigation: React.FC = () => {
+  const { userToken } = useAuth();
+
   return (
-    <Stack.Navigator initialRouteName="SignIn">
-      <Stack.Screen name="SignIn" component={SignInScreen} />
-      <Stack.Screen
-        name="Main"
-        component={MainTabs}
-        options={{ headerShown: false }}
-      />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {userToken ? (
+        // If the user is authenticated, show MainTabs
+        <Stack.Screen name="Main" component={MainTabs} />
+      ) : (
+        // If not, show SignIn
+        <Stack.Screen name="SignIn" component={SignInScreen} />
+      )}
     </Stack.Navigator>
   );
 };

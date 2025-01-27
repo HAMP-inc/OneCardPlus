@@ -36,6 +36,7 @@ const TransactionsScreen: React.FC = () => {
 
   const flatListRef = useRef<FlatList>(null);
 
+  // Fetch transactions based on page number
   const fetchTransactions = async (page: number): Promise<Transaction[]> => {
     console.log("Fetching transactions for page:", page);
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -53,6 +54,7 @@ const TransactionsScreen: React.FC = () => {
     );
   };
 
+  // Load transactions based on page number
   const loadTransactions = async (page: number) => {
     if (loading) return;
     setLoading(true);
@@ -83,6 +85,7 @@ const TransactionsScreen: React.FC = () => {
     }
   }, [page]);
 
+  // Filter transactions based on date range
   const filteredTransactions = transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.date + "T00:00:00Z");
 
@@ -105,13 +108,32 @@ const TransactionsScreen: React.FC = () => {
     return transactionUTC >= startUTC && transactionUTC <= endUTC;
   });
 
+  // Go to the first page
+  const goToFirstPage = () => {
+    setPage(1);
+  };
+
+  // Go to the last page
+  const goToLastPage = () => {
+    setPage(totalPages);
+  };
+
+  // Go to the next page
+  const goToNextPage = () => {
+    if (filteredTransactions.length > 0 && page < totalPages) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
   const downloadTransactionsPDF = async () => {
     try {
+      // Start download and show progress
       setIsDownloading(true);
       setProgress(0);
 
       const allFetchedTransactions: Transaction[] = [];
 
+      // Fetch transactions and update progress
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
         const newTransactions = await fetchTransactions(pageNum);
         allFetchedTransactions.push(...newTransactions);
@@ -119,9 +141,10 @@ const TransactionsScreen: React.FC = () => {
         const randomIncrement = Math.floor(Math.random() * 21) + 5;
         setProgress((prev) => Math.min(prev + randomIncrement, 100));
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate delay
       }
 
+      // Filter the transactions based on date
       const filteredTransactions = allFetchedTransactions.filter(
         (transaction) => {
           const transactionDate = new Date(transaction.date + "T00:00:00Z");
@@ -146,25 +169,34 @@ const TransactionsScreen: React.FC = () => {
         }
       );
 
+      // Generate HTML for PDF
       const htmlContent = generateHTMLForPDF(filteredTransactions);
 
+      // Save file to the file system
       const fileUri = FileSystem.documentDirectory + "transactions.html";
       await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
         encoding: FileSystem.EncodingType.UTF8,
       });
 
-      // Share the file and handle result with try-catch
+      // Share the file directly without timeout
       await Sharing.shareAsync(fileUri);
+
+      // If the share was successful, reset progress and modal
+      setIsDownloading(false);
+      setProgress(0);
       Alert.alert(
         "File Ready",
         "The file is saved and ready to view. You can open it with a compatible app."
       );
     } catch (error) {
+      // Ensure progress and modal reset after error
       console.error("Error generating PDF:", error);
+
+      setIsDownloading(false); // Hide the loading modal
+      setProgress(0); // Reset the progress
+
+      // Handle cancellation or other errors
       Alert.alert("Error", "Failed to generate PDF");
-    } finally {
-      setIsDownloading(false);
-      setProgress(0);
     }
   };
 
@@ -185,14 +217,6 @@ const TransactionsScreen: React.FC = () => {
       start.getTime() + Math.random() * (end.getTime() - start.getTime())
     );
     return randomDate.toISOString().split("T")[0];
-  };
-
-  const goToFirstPage = () => {
-    setPage(1);
-  };
-
-  const goToLastPage = () => {
-    setPage(totalPages);
   };
 
   return (
@@ -268,7 +292,9 @@ const TransactionsScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.pageButton}
           onPress={goToFirstPage}
-          disabled={page === 1 || pageLoading}
+          disabled={
+            page === 1 || pageLoading || filteredTransactions.length === 0
+          }
         >
           <Ionicons name="arrow-undo" size={24} color="blue" />
         </TouchableOpacity>
@@ -276,7 +302,9 @@ const TransactionsScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.pageButton}
           onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1 || pageLoading}
+          disabled={
+            page === 1 || pageLoading || filteredTransactions.length === 0
+          }
         >
           <Ionicons name="chevron-back" size={24} color="blue" />
         </TouchableOpacity>
@@ -284,7 +312,11 @@ const TransactionsScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.pageButton}
           onPress={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={page === totalPages || pageLoading}
+          disabled={
+            page === totalPages ||
+            pageLoading ||
+            filteredTransactions.length === 0
+          }
         >
           <Ionicons name="chevron-forward" size={24} color="blue" />
         </TouchableOpacity>
@@ -292,7 +324,11 @@ const TransactionsScreen: React.FC = () => {
         <TouchableOpacity
           style={styles.pageButton}
           onPress={goToLastPage}
-          disabled={page === totalPages || pageLoading}
+          disabled={
+            page === totalPages ||
+            pageLoading ||
+            filteredTransactions.length === 0
+          }
         >
           <Ionicons name="arrow-redo" size={24} color="blue" />
         </TouchableOpacity>
@@ -300,7 +336,11 @@ const TransactionsScreen: React.FC = () => {
 
       <TouchableOpacity
         onPress={downloadTransactionsPDF}
-        style={styles.downloadButton}
+        style={[
+          styles.downloadButton,
+          filteredTransactions.length === 0 && styles.disabledButton, // Apply the disabled style if no transactions
+        ]}
+        disabled={filteredTransactions.length === 0} // Disable the button if there are no transactions
       >
         <Text style={styles.downloadText}>Download as PDF</Text>
       </TouchableOpacity>
@@ -385,6 +425,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: 20,
+  },
+  disabledButton: {
+    opacity: 0.3, // Lower opacity to make it appear grayed out or "blurred"
+    backgroundColor: "#d0d0d0", // Optional: Change background color to a light gray when disabled
   },
   downloadText: { color: "white", fontSize: 18 },
   paginationContainer: {
